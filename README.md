@@ -29,7 +29,6 @@ The main goal is to demonstrate how a camera and robotic arm can work together i
 * [Physical Game Sequence](#physical-game-sequence)
 * [Running the Main Game](#running-the-main-game)
     * [Controls](#controls)
-* [Offline Version](#offline-version)
 * [Acknowledgements](#acknowledgements)
 
 ---
@@ -83,7 +82,6 @@ The project is organized into Python source files for the game, robot control, a
 | **Interactive board calibration** | Allows selection of the four board corners directly from the camera image. |
 | **Live visual feedback** | Displays the camera stream and warped board detector in real time. |
 | **Standalone Pygame mode** | Allows testing TicTacToe without the physical robot setup. |
-| **Configurable turn timer** | Provides a configurable turn timer in the offline version. |
 | **Replay, recalibration, and main menu controls** | Provides controls for replaying the game, recalibrating the board, and returning to the main menu. |
 
 ---
@@ -272,32 +270,6 @@ The main menu provides three options:
 | `C` | Recalibrate the board during the game |
 | `R` | Replay after the game has ended |
 | `Q` | Return to the menu or exit the current screen |
-
----
-
-## Offline Version
-
-The project includes `cps_maingameoffline.py`, a standalone version of the game called **Tic Tac Clash**.
-
-Run it with:
-
-```bash
-python cps_maingameoffline.py
-```
-
-The offline version includes:
-
-- Player selection between `X` and `O`
-- `X` always taking the first turn
-- Adjustable turn duration from 1 to 30 seconds
-- Mouse based player moves
-- Random robot moves into available cells
-- Robot thinking animation
-- Win and draw detection
-- Winning line visualization
-- Replay and main menu options
-
-This version is useful for testing the user interface and game state logic without connecting the robotic hardware.
 
 ---
 
