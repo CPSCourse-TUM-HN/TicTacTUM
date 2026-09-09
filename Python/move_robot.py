@@ -1,8 +1,9 @@
 """
 play_csv_positions.py
 
-Reads CSV motor positions from a user-specified .txt file and replays them
-sequentially on the SO-101 follower arm. Press Ctrl+C at any time to halt playback.
+Reads CSV motor positions from a user-specified .txt file inside the
+'XO_Positions' folder and replays them sequentially on the SO-101 follower arm.
+Press Ctrl+C at any time to halt playback.
 """
 
 import os
@@ -16,6 +17,7 @@ from lerobot.robots.so_follower import SO101Follower, SO101FollowerConfig
 FOLLOWER_PORT = "COM5"           # Your follower arm's serial port
 FOLLOWER_ID = "my_follower_arm"  # Must match the ID used during calibration
 PLAYBACK_HZ = 20                 # Match recording rate (20 Hz = 0.05s per frame)
+XO_POSITIONS_DIR = "XO_Positions"  # Subfolder containing position text files
 
 # Exact joint order matching your saved CSV format
 JOINT_ORDER = [
@@ -42,13 +44,16 @@ def select_input_file():
     if not filename.endswith(".txt"):
         filename += ".txt"
 
-    # Check if file exists before proceeding
-    if not os.path.exists(filename):
-        print(f"Error: File '{filename}' does not exist in the current folder.")
+    # Construct the full relative path to the file within the XO_Positions directory
+    filepath = os.path.join(XO_POSITIONS_DIR, filename)
+
+    # Check if folder and file exist before proceeding
+    if not os.path.exists(filepath):
+        print(f"Error: File '{filename}' does not exist inside the '{XO_POSITIONS_DIR}' folder.")
         print("Exiting program.")
         return None
 
-    return filename
+    return filepath
 
 
 def load_positions_from_file(filepath):
@@ -82,16 +87,16 @@ def load_positions_from_file(filepath):
 
 def main():
     # Prompt user for confirmation and file name before connecting to robot
-    input_file = select_input_file()
-    if input_file is None:
+    input_filepath = select_input_file()
+    if input_filepath is None:
         return
 
-    positions = load_positions_from_file(input_file)
+    positions = load_positions_from_file(input_filepath)
     if not positions:
-        print(f"No valid position data found to execute inside '{input_file}'. Exiting.")
+        print(f"No valid position data found to execute inside '{input_filepath}'. Exiting.")
         return
 
-    print(f"Loaded {len(positions)} waypoint(s) from '{input_file}'.")
+    print(f"Loaded {len(positions)} waypoint(s) from '{input_filepath}'.")
 
     # Initialize and connect the robot arm
     config = SO101FollowerConfig(port=FOLLOWER_PORT, id=FOLLOWER_ID)

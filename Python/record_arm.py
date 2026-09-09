@@ -1,7 +1,8 @@
 """
 Puts the SO-101 arm into free-move mode (torque off), prints joint angles
 in real time, and AUTOMATICALLY saves positions in CSV format inside a .txt file
-every 0.05 seconds (or specified interval). Press Ctrl+C or 'Q' to exit.
+within the XO_Positions directory every 0.05 seconds (or specified interval).
+Press Ctrl+C or 'Q' to exit.
 """
 
 import os
@@ -13,6 +14,7 @@ FOLLOWER_PORT = "COM5"           # your follower arm's port
 FOLLOWER_ID = "my_follower_arm"  # must match the id used during `lerobot-calibrate`
 READ_HZ = 20                     # how many times per second to check/print
 RECORD_INTERVAL = 0.05           # interval in seconds between automatic saves
+XO_POSITIONS_DIR = "XO_Positions"  # Subfolder to save recorded positions
 
 # Ordered list of joints to extract and save
 JOINT_ORDER = [
@@ -39,7 +41,7 @@ def format_csv_line(obs):
 
 
 def setup_output_file():
-    """Prompts the user to create a text file before starting recording."""
+    """Prompts the user to create a text file inside XO_Positions before starting recording."""
     choice = input("Do you want to create a new txt file? (yes/no): ").strip().lower()
     
     if choice not in ("yes", "y"):
@@ -52,24 +54,30 @@ def setup_output_file():
     if not filename.endswith(".txt"):
         filename += ".txt"
 
+    # Ensure output directory exists
+    os.makedirs(XO_POSITIONS_DIR, exist_ok=True)
+
+    # Construct the full relative path inside the XO_Positions folder
+    filepath = os.path.join(XO_POSITIONS_DIR, filename)
+
     # Check if file exists to display appropriate message
-    if os.path.exists(filename):
-        print(f"File '{filename}' already exists. Overwriting existing file...")
+    if os.path.exists(filepath):
+        print(f"File '{filepath}' already exists. Overwriting existing file...")
     else:
-        print(f"Creating new file '{filename}'...")
+        print(f"Creating new file '{filepath}'...")
 
     # Clear/create the file using write mode ('w') and insert the CSV header
-    with open(filename, "w") as f:
+    with open(filepath, "w") as f:
         f.write(",".join(JOINT_ORDER) + "\n")
     
-    print(f"Initialized CSV header in '{filename}'. Starting recording...\n")
-    return filename
+    print(f"Initialized CSV header in '{filepath}'. Starting recording...\n")
+    return filepath
 
 
 def main():
     # Prompt user for file creation before connecting to robot
-    output_file = setup_output_file()
-    if output_file is None:
+    output_filepath = setup_output_file()
+    if output_filepath is None:
         return
 
     config = SO101FollowerConfig(port=FOLLOWER_PORT, id=FOLLOWER_ID)
@@ -79,7 +87,7 @@ def main():
     # Free the motors so the arm can be moved by hand
     robot.bus.disable_torque()
     print("Torque disabled — you can move the arm freely by hand.")
-    print(f"Recording joint angles automatically every {RECORD_INTERVAL} second(s) to '{output_file}'.")
+    print(f"Recording joint angles automatically every {RECORD_INTERVAL} second(s) to '{output_filepath}'.")
     print("  -> Press 'Q' or Ctrl+C to exit.\n")
 
     period = 1.0 / READ_HZ
@@ -103,8 +111,8 @@ def main():
             if current_time - last_save_time >= RECORD_INTERVAL:
                 csv_line = format_csv_line(obs)
 
-                # Append CSV row to output file
-                with open(output_file, "a") as f:
+                # Append CSV row to output file inside XO_Positions
+                with open(output_filepath, "a") as f:
                     f.write(csv_line + "\n")
 
                 print(f"\n[AUTO-SAVED #{saved_count}] -> {csv_line}")
